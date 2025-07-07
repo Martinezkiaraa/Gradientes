@@ -1,0 +1,19 @@
+\documentclass[12pt]{article}
+\begin{document}
+function:
+\[
+  f = ((\tanh(w^\top \cdot x+b)+1)/2-d)^{2}
+\]
+
+gradient:
+\[
+  \frac{\partial f}{\partial w} = (1-\tanh(b+w^\top \cdot x)^{2})\cdot ((1+\tanh(b+w^\top \cdot x))/2-d)\cdot x
+\]
+where
+\begin{itemize}
+  \item $b$ is a scalar
+  \item $d$ is a scalar
+  \item $w$ is a vector
+  \item $x$ is a vector
+\end{itemize}
+\end{document}
