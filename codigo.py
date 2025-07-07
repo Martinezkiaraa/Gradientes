@@ -1,3 +1,8 @@
+"""
+Intregante 1: Mariño Martina
+Integrante 2: Martinez Kiara
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -57,18 +62,13 @@ def grad_L(w, b, X, D):
 
     return grad_w, grad_b
 
-# ---------- predicción y matriz de confusión ----------
 def predecir_etiquetas(X, w, b):
-    """
-    Predice etiquetas usando los parámetros w y b entrenados
-    """
     preds = np.array([f_wb(xi, w, b) for xi in X])
     preds_bin = (preds >= 0.5).astype(int)
     return preds_bin, preds
 
 def generar_matriz_confusion(y_true, y_pred):
 
-    # Calcular matriz de confusión manualmente
     tn = fp = fn = tp = 0
     for true, pred in zip(y_true, y_pred):
         if true == 0 and pred == 0:  # True Negative
@@ -82,20 +82,16 @@ def generar_matriz_confusion(y_true, y_pred):
     
     cm = np.array([[tn, fp], [fn, tp]])
     
-    # Calcular métricas
     accuracy = (tp + tn) / (tp + tn + fp + fn) if (tp + tn + fp + fn) > 0 else 0
     
-    # Precision, Recall, F1 para clase positiva (Parkinson)
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0
     f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
     
-    # Calcular métricas para clase Healthy (negativa)
     precision_healthy = tn / (tn + fn) if (tn + fn) > 0 else 0
     recall_healthy = tn / (tn + fp) if (tn + fp) > 0 else 0
     f1_healthy = 2 * (precision_healthy * recall_healthy) / (precision_healthy + recall_healthy) if (precision_healthy + recall_healthy) > 0 else 0
     
-    # Crear reporte manual
     report = f"""
 Reporte de Clasificación:
               precision    recall  f1-score   support
@@ -114,30 +110,23 @@ def graficar_matriz_confusion(cm, accuracy, title="Matriz de Confusión"):
 
     plt.figure(figsize=(8, 6))
     
-    # Crear heatmap manualmente
     im = plt.imshow(cm, cmap='Blues', aspect='auto')
     
-    # Agregar texto en cada celda
     for i in range(2):
         for j in range(2):
             plt.text(j, i, str(cm[i, j]), ha='center', va='center', 
                     color='white' if cm[i, j] > cm.max()/2 else 'black', fontsize=14)
     
-    # Configurar ejes
     plt.xticks([0, 1], ['Healthy', 'Parkinson'])
     plt.yticks([0, 1], ['Healthy', 'Parkinson'])
     plt.ylabel('Etiqueta Real')
     plt.xlabel('Etiqueta Predicha')
     plt.title(f'{title}\nAccuracy: {accuracy:.4f}')
     
-    # Agregar barra de color
     plt.colorbar(im)
     plt.show()
 
 def analizar_convergencia_alpha(X_train, D_train, X_test, D_test, alphas=[1e-6, 1e-5, 1e-4, 1e-3, 1e-2], iterations=1000):
-    """
-    Analiza la convergencia del método para diferentes valores de α
-    """
     resultados_convergencia = {}
     
     print("Analizando convergencia para diferentes valores de α...")
@@ -146,10 +135,8 @@ def analizar_convergencia_alpha(X_train, D_train, X_test, D_test, alphas=[1e-6, 
     for alpha in alphas:
         print(f"\nEntrenando con α = {alpha}")
         
-        # Fijar semilla para reproducibilidad
         np.random.seed(42)
         
-        # Entrenar modelo y obtener historial completo
         w, b, loss_hist, acc_tr_hist, loss_te_hist, acc_te_hist = gradient_descent(X_train, D_train, X_test, D_test, alpha, iterations)
         
         resultados_convergencia[alpha] = {
@@ -168,9 +155,6 @@ def analizar_convergencia_alpha(X_train, D_train, X_test, D_test, alphas=[1e-6, 
     return resultados_convergencia
 
 def graficar_convergencia_alpha(resultados_convergencia):
-    """
-    Grafica los resultados de convergencia para diferentes valores de α
-    """
     alphas = list(resultados_convergencia.keys())
     colors = ['blue', '#0077b6', '#023e8a', '#0096c7', '#48cae4']
     
@@ -204,7 +188,6 @@ def graficar_convergencia_alpha(resultados_convergencia):
     plt.tight_layout()
     plt.show()
     
-    # Tabla resumen de convergencia
     print("\n" + "="*80)
     print("RESUMEN DE CONVERGENCIA DEL CONJUNTO DE TESTING")
     print("="*80)
@@ -215,12 +198,10 @@ def graficar_convergencia_alpha(resultados_convergencia):
         res = resultados_convergencia[alpha]
         acc_te_hist = res['acc_te_hist']
         
-        # Verificar si converge (accuracy aumenta y se estabiliza)
         acc_inicial = acc_te_hist[0]
         acc_final = acc_te_hist[-1]
         acc_penultimo = acc_te_hist[-2] if len(acc_te_hist) > 1 else acc_final
         
-        # Criterio de convergencia: accuracy aumenta y se estabiliza
         converge = "Sí" if (acc_final > acc_inicial and abs(acc_final - acc_penultimo) < 1e-4) else "No"
         
         print(f"{alpha:<10} {res['loss_final']:<12.6f} {res['acc_te_final']:<12.4f} {converge:<10}")
@@ -229,9 +210,7 @@ def graficar_convergencia_alpha(resultados_convergencia):
 
 # ---------- análisis de diferentes tamaños de imagen ----------
 def analizar_tamanos_imagen(path_healthy, path_parkinson, tamanos=[16, 32, 64, 128], max_imgs=300):
-    """
-    Analiza el impacto de diferentes tamaños de imagen en el rendimiento
-    """
+
     import time
     resultados = {}
     
@@ -240,7 +219,6 @@ def analizar_tamanos_imagen(path_healthy, path_parkinson, tamanos=[16, 32, 64, 1
         print(f"ANALIZANDO TAMAÑO {tam}x{tam}")
         print(f"{'='*50}")
         
-        # Cargar datos con este tamaño
         X, y = cargar_datos(path_healthy, path_parkinson, max_imgs=max_imgs, tam=(tam, tam))
         X_tr, X_te, y_tr, y_te = dividir_datos(X, y)
         
@@ -306,12 +284,8 @@ def analizar_tamanos_imagen(path_healthy, path_parkinson, tamanos=[16, 32, 64, 1
 
 # ---------- función para graficar análisis de tamaños de imagen ----------
 def graficar_analisis_tamanos(resultados_tamanos):
-    """
-    Grafica los resultados del análisis de diferentes tamaños de imagen
-    """
     tamanos = list(resultados_tamanos.keys())
     
-    # Extraer datos para graficar
     dimensiones = [resultados_tamanos[tam]['dimensiones'] for tam in tamanos]
     tiempos = [resultados_tamanos[tam]['tiempo'] for tam in tamanos]
     train_acc = [resultados_tamanos[tam]['train_acc_final'] for tam in tamanos]
@@ -366,16 +340,11 @@ def graficar_analisis_tamanos(resultados_tamanos):
 # ---------- descenso por gradiente con historial ----------
 def gradient_descent(X_train, D_train, X_test, D_test, alpha, iterations=2000): 
 
-    # Fijar semilla para reproducibilidad
     np.random.seed(42)
     
     K = X_train.shape[1] 
     w = np.random.randn(K) * 0.01 
     b = 0.0
-    """
-    K = X_train.shape[1]
-    w = np.random.randn(K) / np.sqrt(K)       # σ ≈ 1/√K ≈ 0.016
-    b = 0.0"""
 
     history = { 
         'train_loss': [], 
@@ -406,9 +375,6 @@ def gradient_descent(X_train, D_train, X_test, D_test, alpha, iterations=2000):
     return w, b, history['train_loss'], history['train_acc'], history['test_loss'], history['test_acc']
 
 def graficar_convergencia_mejor_alpha(loss_tr_hist, loss_te_hist, acc_tr_hist, acc_te_hist, alpha):
-    """
-    Grafica la convergencia del modelo con el mejor alpha encontrado
-    """
     plt.figure(figsize=(15, 5))
     
     # Gráfico 1: Pérdida de entrenamiento
@@ -444,7 +410,6 @@ def graficar_convergencia_mejor_alpha(loss_tr_hist, loss_te_hist, acc_tr_hist, a
     plt.tight_layout()
     plt.show()
     
-    # Imprimir estadísticas finales
     print(f"\n--- Resultados con α = {alpha} ---")
     print(f"Pérdida Train final: {loss_tr_hist[-1]:.6f}")
     print(f"Pérdida Test final: {loss_te_hist[-1]:.6f}")
@@ -453,9 +418,6 @@ def graficar_convergencia_mejor_alpha(loss_tr_hist, loss_te_hist, acc_tr_hist, a
     print(f"Mejora en accuracy: {acc_te_hist[-1] - acc_te_hist[0]:.4f}")
 
 def normalizar_min_max(X_train, X_test):
-    """
-    Normaliza los datos entre 0 y 1 usando min-max scaling
-    """
     min_vals = X_train.min(axis=0)
     max_vals = X_train.max(axis=0)
     range_vals = max_vals - min_vals
@@ -473,67 +435,48 @@ def f_sigmoide(x, w, b):
     return 1 / (1 + np.exp(-z))
 
 def loss_sigmoide(w, b, X, D):
-    """
-    Función de pérdida para el modelo sigmoideo (log-likelihood positivo) - VECTORIZADA
-    """
     m = X.shape[0]
     
-    # Calcular predicciones vectorizadas
     z = np.dot(X, w) + b
     y_pred = 1 / (1 + np.exp(-z))
     
-    # Log-likelihood positivo para maximizar
-    # Evitar log(0) y log(1) con epsilon
     epsilon = 1e-15
     y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
     
-    # Calcular log-likelihood positivo (para maximizar)
     log_likelihood = np.sum(D * np.log(y_pred) + (1 - D) * np.log(1 - y_pred))
     
     return log_likelihood / m
 
 def accuracy_sigmoide(w, b, X, D):
-    """
-    Calcula la precisión del modelo sigmoideo - VECTORIZADA
-    """
     m = X.shape[0]
     
-    # Calcular predicciones vectorizadas
     z = np.dot(X, w) + b
     y_pred = 1 / (1 + np.exp(-z))
     
-    # Convertir a etiquetas binarias
     y_pred_bin = (y_pred >= 0.5).astype(int)
     
-    # Calcular accuracy
     correct = np.sum(y_pred_bin == D)
     
     return correct / m
 
 def grad_sigmoide(w, b, X, D):
-
     m = X.shape[0]
     
-    # Calcular predicciones vectorizadas
     z = np.dot(X, w) + b
     y_pred = 1 / (1 + np.exp(-z))
     
-    # Calcular error
     error = D - y_pred
     
-    # Calcular gradientes vectorizados
     grad_w = np.dot(X.T, error) / m
     grad_b = np.sum(error) / m
     
     return grad_w, grad_b
 
 def gradient_ascent_sigmoid(X_train, D_train, X_test, D_test, alpha, iterations=2000):
-    # Fijar semilla para reproducibilidad
     np.random.seed(42)
     
     K = X_train.shape[1] 
-    # Mejor inicialización para ascenso por gradiente
-    w = np.random.randn(K) * 0.001  # Pesos más pequeños
+    w = np.random.randn(K) * 0.001  
     b = 0.0
 
     history = { 
@@ -545,22 +488,21 @@ def gradient_ascent_sigmoid(X_train, D_train, X_test, D_test, alpha, iterations=
 
     for it in range(iterations): 
         grad_w, grad_b = grad_sigmoide(w, b, X_train, D_train) 
-        # ASCENSO: sumamos el gradiente para maximizar el log-likelihood positivo
         w += alpha * grad_w 
         b += alpha * grad_b 
 
         if it % 10 == 0 or it == iterations - 1: 
-            train_loss = loss_sigmoide(w, b, X_train, D_train) 
+            train_log_likelihood = loss_sigmoide(w, b, X_train, D_train) 
             train_acc = accuracy_sigmoide(w, b, X_train, D_train) 
-            test_loss = loss_sigmoide(w, b, X_test, D_test) 
+            test_log_likelihood = loss_sigmoide(w, b, X_test, D_test) 
             test_acc = accuracy_sigmoide(w, b, X_test, D_test) 
 
-            history['train_loss'].append(train_loss) 
+            history['train_loss'].append(train_log_likelihood) 
             history['train_acc'].append(train_acc) 
-            history['test_loss'].append(test_loss) 
+            history['test_loss'].append(test_log_likelihood) 
             history['test_acc'].append(test_acc) 
 
-            print(f"Iter {it}: Train Loss={train_loss:.4f}, Train Acc={train_acc:.4f}, Test Loss={test_loss:.4f}, Test Acc={test_acc:.4f}") 
+            print(f"Iter {it}: Train LogLik={train_log_likelihood:.4f}, Train Acc={train_acc:.4f}, Test LogLik={test_log_likelihood:.4f}, Test Acc={test_acc:.4f}") 
         
     
     return w, b, history['train_loss'], history['train_acc'], history['test_loss'], history['test_acc']
@@ -577,9 +519,7 @@ def predecir_sigmoid(X, w, b):
     return y_pred_bin, y_pred_prob
 
 def graficar_convergencia_sigmoid(loss_tr_hist, loss_te_hist, acc_tr_hist, acc_te_hist, alpha):
-    """
-    Grafica la convergencia del modelo con ascenso por gradiente sigmoideo
-    """
+
     plt.figure(figsize=(15, 6))
     
     # Gráfico 1: Accuracy de entrenamiento
@@ -605,20 +545,16 @@ def graficar_convergencia_sigmoid(loss_tr_hist, loss_te_hist, acc_tr_hist, acc_t
     plt.tight_layout()
     plt.show()
     
-    # Imprimir estadísticas finales
     print(f"\n--- Resultados Ascenso por Gradiente Sigmoid (α = {alpha}) ---")
     print(f"Accuracy Train final: {acc_tr_hist[-1]:.4f}")
     print(f"Accuracy Test final: {acc_te_hist[-1]:.4f}")
     print(f"Mejora en accuracy de testing: {acc_te_hist[-1] - acc_te_hist[0]:.4f}")
 
 def comparar_sigmoid_alpha(X_train, D_train, X_test, D_test, alpha1=0.001, alpha2=0.01, iterations=2000):
-    """
-    Compara los resultados del ascenso por gradiente sigmoideo con dos valores de alpha diferentes
-    """
+
     print(f"Comparando ascenso por gradiente sigmoideo con α = {alpha1} vs α = {alpha2}")
     print("="*60)
     
-    # Fijar semilla para reproducibilidad
     np.random.seed(42)
     
     # Entrenar con primer alpha
@@ -719,27 +655,27 @@ def comparar_descenso_ascenso(X_train, D_train, X_test, D_test, alpha1=0.001, al
         w_asc2, b_asc2, loss_tr_asc2, acc_tr_asc2, loss_te_asc2, acc_te_asc2 = asc2_results
     
     # Graficar comparación
-    fig, axes = plt.subplots(2, 2, figsize=(18, 14))
+    fig, axes = plt.subplots(2, 2, figsize=(20, 16))
     
-    # Gráfico 1: Pérdida de entrenamiento
+    # Gráfico 1: Log-Likelihood de entrenamiento
     axes[0, 0].plot(loss_tr_desc1, color='blue', linewidth=2, label=f'Descenso α={alpha1}')
     axes[0, 0].plot(loss_tr_desc2, color='#0077b6', linewidth=2, label=f'Descenso α={alpha2}')
     axes[0, 0].plot(loss_tr_asc1, color='#132a13', linewidth=2, label=f'Ascenso α={alpha1}')
     axes[0, 0].plot(loss_tr_asc2, color='#4f772d', linewidth=2, label=f'Ascenso α={alpha2}')
-    axes[0, 0].set_title('Pérdida de Entrenamiento', fontsize=14, fontweight='bold')
+    axes[0, 0].set_title('Log-Likelihood de Entrenamiento', fontsize=14)
     axes[0, 0].set_xlabel('Iteraciones')
-    axes[0, 0].set_ylabel('Loss')
+    axes[0, 0].set_ylabel('Log-Likelihood')
     axes[0, 0].grid(True, alpha=0.3)
     axes[0, 0].legend()
     
-    # Gráfico 2: Pérdida de testing
+    # Gráfico 2: Log-Likelihood de testing
     axes[0, 1].plot(loss_te_desc1, color='blue', linewidth=2, label=f'Descenso α={alpha1}')
     axes[0, 1].plot(loss_te_desc2, color='#0077b6', linewidth=2, label=f'Descenso α={alpha2}')
     axes[0, 1].plot(loss_te_asc1, color='#132a13', linewidth=2, label=f'Ascenso α={alpha1}')
     axes[0, 1].plot(loss_te_asc2, color='#4f772d', linewidth=2, label=f'Ascenso α={alpha2}')
-    axes[0, 1].set_title('Pérdida de Testing', fontsize=14, fontweight='bold')
+    axes[0, 1].set_title('Log-Likelihood de Testing', fontsize=14)
     axes[0, 1].set_xlabel('Iteraciones')
-    axes[0, 1].set_ylabel('Loss')
+    axes[0, 1].set_ylabel('Log-Likelihood')
     axes[0, 1].grid(True, alpha=0.3)
     axes[0, 1].legend()
     
@@ -748,7 +684,7 @@ def comparar_descenso_ascenso(X_train, D_train, X_test, D_test, alpha1=0.001, al
     axes[1, 0].plot(acc_tr_desc2, color='#0077b6', linewidth=2, label=f'Descenso α={alpha2}')
     axes[1, 0].plot(acc_tr_asc1, color='#132a13', linewidth=2, label=f'Ascenso α={alpha1}')
     axes[1, 0].plot(acc_tr_asc2, color='#4f772d', linewidth=2, label=f'Ascenso α={alpha2}')
-    axes[1, 0].set_title('Accuracy de Entrenamiento', fontsize=14, fontweight='bold')
+    axes[1, 0].set_title('Accuracy de Entrenamiento', fontsize=14)
     axes[1, 0].set_xlabel('Iteraciones')
     axes[1, 0].set_ylabel('Accuracy')
     axes[1, 0].set_ylim(0, 1)
@@ -760,43 +696,42 @@ def comparar_descenso_ascenso(X_train, D_train, X_test, D_test, alpha1=0.001, al
     axes[1, 1].plot(acc_te_desc2, color='#0077b6', linewidth=2, label=f'Descenso α={alpha2}')
     axes[1, 1].plot(acc_te_asc1, color='#132a13', linewidth=2, label=f'Ascenso α={alpha1}')
     axes[1, 1].plot(acc_te_asc2, color='#4f772d', linewidth=2, label=f'Ascenso α={alpha2}')
-    axes[1, 1].set_title('Accuracy de Testing', fontsize=14, fontweight='bold')
+    axes[1, 1].set_title('Accuracy de Testing', fontsize=14)
     axes[1, 1].set_xlabel('Iteraciones')
     axes[1, 1].set_ylabel('Accuracy')
     axes[1, 1].set_ylim(0, 1)
     axes[1, 1].grid(True, alpha=0.3)
     axes[1, 1].legend()
     
-    plt.tight_layout(pad=3.0)
+    plt.tight_layout(pad=5.0, h_pad=4.0, w_pad=4.0)
     plt.show()
     
     # Imprimir estadísticas comparativas
     print(f"\n--- Comparación Descenso vs Ascenso por Gradiente ---")
     print(f"DESCENSO α = {alpha1}:")
-    print(f"  Loss Train final: {loss_tr_desc1[-1]:.4f}")
-    print(f"  Loss Test final: {loss_te_desc1[-1]:.4f}")
+    print(f"  Log-Likelihood Train final: {loss_tr_desc1[-1]:.4f}")
+    print(f"  Log-Likelihood Test final: {loss_te_desc1[-1]:.4f}")
     print(f"  Accuracy Train final: {acc_tr_desc1[-1]:.4f}")
     print(f"  Accuracy Test final: {acc_te_desc1[-1]:.4f}")
     
     print(f"\nDESCENSO α = {alpha2}:")
-    print(f"  Loss Train final: {loss_tr_desc2[-1]:.4f}")
-    print(f"  Loss Test final: {loss_te_desc2[-1]:.4f}")
+    print(f"  Log-Likelihood Train final: {loss_tr_desc2[-1]:.4f}")
+    print(f"  Log-Likelihood Test final: {loss_te_desc2[-1]:.4f}")
     print(f"  Accuracy Train final: {acc_tr_desc2[-1]:.4f}")
     print(f"  Accuracy Test final: {acc_te_desc2[-1]:.4f}")
     
     print(f"\nASCENSO α = {alpha1}:")
-    print(f"  Loss Train final: {loss_tr_asc1[-1]:.4f}")
-    print(f"  Loss Test final: {loss_te_asc1[-1]:.4f}")
+    print(f"  Log-Likelihood Train final: {loss_tr_asc1[-1]:.4f}")
+    print(f"  Log-Likelihood Test final: {loss_te_asc1[-1]:.4f}")
     print(f"  Accuracy Train final: {acc_tr_asc1[-1]:.4f}")
     print(f"  Accuracy Test final: {acc_te_asc1[-1]:.4f}")
     
     print(f"\nASCENSO α = {alpha2}:")
-    print(f"  Loss Train final: {loss_tr_asc2[-1]:.4f}")
-    print(f"  Loss Test final: {loss_te_asc2[-1]:.4f}")
+    print(f"  Log-Likelihood Train final: {loss_tr_asc2[-1]:.4f}")
+    print(f"  Log-Likelihood Test final: {loss_te_asc2[-1]:.4f}")
     print(f"  Accuracy Train final: {acc_tr_asc2[-1]:.4f}")
     print(f"  Accuracy Test final: {acc_te_asc2[-1]:.4f}")
     
-    # Determinar el mejor método
     mejores_resultados = {
         'descenso_alpha1': acc_te_desc1[-1],
         'descenso_alpha2': acc_te_desc2[-1],
@@ -811,7 +746,6 @@ def comparar_descenso_ascenso(X_train, D_train, X_test, D_test, alpha1=0.001, al
 
 # ---------- main ----------
 def main():
-    # Fijar semilla para reproducibilidad
     np.random.seed(42)
     
     path_h = "../Healthy"
@@ -825,7 +759,7 @@ def main():
     X_tr_norm, X_te_norm = normalizar_min_max(X_tr, X_te)
 
     # ---------------- DESCENSO POR GRADIENTE ----------------
-    """
+
     print("Entrenando sin normalizar ...")
     w, b, loss_hist, acc_tr_hist, loss_te_hist, acc_te_hist = gradient_descent(X_tr, y_tr, X_te, y_te, 0.002)
 
@@ -916,8 +850,7 @@ def main():
     
     plt.tight_layout()
     plt.show() 
-    """
-    """
+
     # ---------- Análisis del impacto del parámetro α en la convergencia ----------
     print("\n" + "="*50)
     print("ANÁLISIS DEL IMPACTO DEL PARÁMETRO α EN LA CONVERGENCIA")
@@ -927,7 +860,7 @@ def main():
     resultados_convergencia = analizar_convergencia_alpha(X_tr_norm, y_tr, X_te_norm, y_te, 
                                                         alphas=[1e-6, 1e-5, 1e-4, 1e-3, 1e-2])
     
-        # Graficar resultados de convergencia
+    # Graficar resultados de convergencia
     graficar_convergencia_alpha(resultados_convergencia)
 
 
@@ -963,7 +896,7 @@ def main():
     # Graficar matriz de confusión
     graficar_matriz_confusion(cm, accuracy, "Matriz de Confusión - Datos Normalizados")
     
-    """
+ 
     # ---------- ASCENSO POR GRADIENTE SIGMOIDEO ----------
     print("\n" + "="*50)
     print("ASCENSO POR GRADIENTE CON FUNCIÓN SIGMOIDEA")
@@ -972,12 +905,12 @@ def main():
     w_sigmoid, b_sigmoid, loss_tr_sigmoid, acc_tr_sigmoid, loss_te_sigmoid, acc_te_sigmoid = gradient_ascent_sigmoid(X_tr_norm, y_tr, X_te_norm, y_te, 0.001)
     
     # Graficar convergencia del ascenso sigmoideo
-    #print("\n--- Gráficos de convergencia del ascenso por gradiente sigmoideo ---")
-    #graficar_convergencia_sigmoid(loss_tr_sigmoid, loss_te_sigmoid, acc_tr_sigmoid, acc_te_sigmoid, 0.001)
+    print("\n--- Gráficos de convergencia del ascenso por gradiente sigmoideo ---")
+    graficar_convergencia_sigmoid(loss_tr_sigmoid, loss_te_sigmoid, acc_tr_sigmoid, acc_te_sigmoid, 0.001)
 
     #-------------- Convergencia de α --------------
     #Los dos mejores valores de α para el descenso por gradiente son 0.001 y 0.01
-    #comparar_sigmoid_alpha(X_tr_norm, y_tr, X_te_norm, y_te, 0.001, 0.01)
+    comparar_sigmoid_alpha(X_tr_norm, y_tr, X_te_norm, y_te, 0.001, 0.01)
 
     #-------------- Comparar  --------------
     
