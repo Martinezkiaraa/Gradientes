@@ -44,17 +44,6 @@ def accuracy(w, b, X, D):
 
 # ---------- gradientes -------------------------------------
 def grad_L(w, b, X, D):
-    """    grad_w = np.zeros_like(w)
-    grad_b = 0.0 
-    for x_i, d_i in zip(X, D): 
-    z = np.dot(w, x_i) + b 
-    tanh_z = np.tanh(z) 
-    f = 0.5 * (1 + tanh_z)  # f_w,b(x_i) 
-    common_term = (1 - tanh_z**2) * (f - d_i) 
-
-    grad_w += common_term * x_i 
-    grad_b += common_term """
-
     z = X @ w + b                # vector (N,)
     tanh_z   = np.tanh(z)
     f   = 0.5 * (1 + tanh_z)
@@ -388,13 +377,13 @@ def graficar_analisis_tamanos(resultados_tamanos):
 # ---------- descenso por gradiente con historial ----------
 def gradient_descent(X_train, D_train, X_test, D_test, alpha, iterations=2000): 
 
-    """K = X_train.shape[1] 
+    K = X_train.shape[1] 
     w = np.random.randn(K) * 0.01 
     b = 0.0 
-"""
+    """
     K = X_train.shape[1]
     w = np.random.randn(K) / np.sqrt(K)       # σ ≈ 1/√K ≈ 0.016
-    b = 0.0
+    b = 0.0"""
 
     history = { 
         'train_loss': [], 
@@ -433,19 +422,18 @@ def main():
     X_tr, X_te, y_tr, y_te = dividir_datos(X, y)
 
     print("Entrenando ...")
-    w, b, loss_hist, acc_tr_hist, acc_te_hist = gradient_descent(X_tr, y_tr, X_te, y_te, 0.005)
+    w, b, loss_hist, acc_tr_hist, acc_te_hist = gradient_descent(X_tr, y_tr, X_te, y_te, 0.0025)
 
     print("Entrenando con datos normalizados ...")
-    """
-    X_tr_norm = X_tr / 255.0
-    X_te_norm = X_te / 255.0"""
-    # Sustituye las dos líneas X_tr_norm = X_tr / 255.0  …
-    X_tr_norm = (X_tr / 255.0 - 0.5) * 2     # ahora cada pixel está en [-1, 1]
-    X_te_norm = (X_te / 255.0 - 0.5) * 2
-
-    w, b, loss_hist_norm, acc_tr_hist_norm, acc_te_hist_norm = gradient_descent(X_tr_norm, y_tr, X_te_norm, y_te, 0.005)
     
-    #---------------- Gráficos ----------------    
+    mean = X_tr.mean(axis=0)
+    std = X_tr.std(axis=0) + 1e-8  # evitar división por 0
+    X_tr_norm = (X_tr - mean) / std
+    X_te_norm  = (X_te  - mean) / std
+
+    w, b, loss_hist_norm, acc_tr_hist_norm, acc_te_hist_norm = gradient_descent(X_tr_norm, y_tr, X_te_norm, y_te, 0.0025)
+    
+    """#---------------- Gráficos ----------------    
     # Imagen 1: Pérdida de entrenamiento
     fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
     
@@ -509,8 +497,9 @@ def main():
     
     plt.tight_layout()
     plt.show() 
+    """
 
-    """# ---------- Análisis del impacto de α ----------
+  # ---------- Análisis del impacto de α ----------
     print("\n" + "="*50)
     print("ANÁLISIS DEL IMPACTO DEL PARÁMETRO α")
     print("="*50)
@@ -523,6 +512,7 @@ def main():
     # ---------- Gráficos del análisis de α ----------
     graficar_analisis_alpha_normalizado(resultados_norm)
 
+    """
     # ---------- Análisis del impacto del tamaño de imagen ----------
     print("\n" + "="*50)
     print("ANÁLISIS DEL IMPACTO DEL TAMAÑO DE IMAGEN")
