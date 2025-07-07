@@ -413,10 +413,73 @@ def gradient_descent(X_train, D_train, X_test, D_test, alpha, iterations=2000):
             alpha *= 0.5          # divide el paso a la mitad
     return w, b, history['train_loss'], history['train_acc'], history['test_acc']
 
+def graficar_convergencia_mejor_alpha(loss_hist, acc_tr_hist, acc_te_hist, alpha):
+    """
+    Grafica la convergencia del modelo con el mejor alpha encontrado
+    """
+    plt.figure(figsize=(15, 5))
+    
+    # Gráfico 1: Pérdida
+    plt.subplot(1, 3, 1)
+    plt.plot(loss_hist, 'b-', linewidth=2, label='Pérdida')
+    plt.title(f'Convergencia de Pérdida\n(α = {alpha})')
+    plt.xlabel('Iteraciones')
+    plt.ylabel('Pérdida')
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    
+    # Gráfico 2: Accuracy de entrenamiento
+    plt.subplot(1, 3, 2)
+    plt.plot(acc_tr_hist, 'g-', linewidth=2, label='Train')
+    plt.title(f'Accuracy de Entrenamiento\n(α = {alpha})')
+    plt.xlabel('Iteraciones')
+    plt.ylabel('Accuracy')
+    plt.ylim(0, 1)
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    
+    # Gráfico 3: Accuracy de test
+    plt.subplot(1, 3, 3)
+    plt.plot(acc_te_hist, 'r-', linewidth=2, label='Test')
+    plt.title(f'Accuracy de Test\n(α = {alpha})')
+    plt.xlabel('Iteraciones')
+    plt.ylabel('Accuracy')
+    plt.ylim(0, 1)
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    
+    plt.tight_layout()
+    plt.show()
+    
+    # Imprimir estadísticas finales
+    print(f"\n--- Resultados con α = {alpha} ---")
+    print(f"Pérdida final: {loss_hist[-1]:.6f}")
+    print(f"Accuracy Train final: {acc_tr_hist[-1]:.4f}")
+    print(f"Accuracy Test final: {acc_te_hist[-1]:.4f}")
+    print(f"Mejora en accuracy: {acc_te_hist[-1] - acc_te_hist[0]:.4f}")
+
+def normalizar_min_max(X_train, X_test):
+    """
+    Normaliza los datos entre 0 y 1 usando min-max scaling
+    """
+    min_vals = X_train.min(axis=0)
+    max_vals = X_train.max(axis=0)
+    range_vals = max_vals - min_vals
+    range_vals[range_vals == 0] = 1  # evitar división por 0
+    
+    X_train_norm = (X_train - min_vals) / range_vals
+    X_test_norm = (X_test - min_vals) / range_vals
+    
+    return X_train_norm, X_test_norm
+
+
+
 # ---------- main ----------
 def main():
     path_h = "../Healthy"
     path_p = "../Parkinson"
+    """path_h = "C:\Users\casa\Downloads\Metodos\Healthy"
+    path_p = "C:\Users\casa\Downloads\Metodos\Parkinson"""
 
     X, y = cargar_datos(path_h, path_p, max_imgs=300, tam=(64, 64))
     X_tr, X_te, y_tr, y_te = dividir_datos(X, y)
@@ -426,14 +489,11 @@ def main():
 
     print("Entrenando con datos normalizados ...")
     
-    mean = X_tr.mean(axis=0)
-    std = X_tr.std(axis=0) + 1e-8  # evitar división por 0
-    X_tr_norm = (X_tr - mean) / std
-    X_te_norm  = (X_te  - mean) / std
+    print("Usando normalización Min-Max (0-1)")
+    X_tr_norm, X_te_norm = normalizar_min_max(X_tr, X_te)
 
     w, b, loss_hist_norm, acc_tr_hist_norm, acc_te_hist_norm = gradient_descent(X_tr_norm, y_tr, X_te_norm, y_te, 0.0025)
-    
-    """#---------------- Gráficos ----------------    
+ #---------------- Gráficos ----------------    
     # Imagen 1: Pérdida de entrenamiento
     fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
     
@@ -499,6 +559,7 @@ def main():
     plt.show() 
     """
 
+
   # ---------- Análisis del impacto de α ----------
     print("\n" + "="*50)
     print("ANÁLISIS DEL IMPACTO DEL PARÁMETRO α")
@@ -509,10 +570,19 @@ def main():
     resultados_norm = analizar_learning_rates(X_tr_norm, y_tr, X_te_norm, y_te, 
                                              alphas=[1e-7, 1e-6, 5e-6, 1e-5, 5e-5])
 
+
     # ---------- Gráficos del análisis de α ----------
     graficar_analisis_alpha_normalizado(resultados_norm)
-
+   
+        #---------------Calculamos la convergencia con el mejor alpha-----------------
+    print("\n" + "="*50)
+    print("CALCULAMOS LA CONVERGENCIA CON EL MEJOR ALPHA")
+    print("="*50)
+    w, b, loss_hist_norm, acc_tr_hist_norm, acc_te_hist_norm = gradient_descent(X_tr_norm, y_tr, X_te_norm, y_te, 5e-05)
+    graficar_convergencia_mejor_alpha(loss_hist_norm, acc_tr_hist_norm, acc_te_hist_norm, 5e-05)
+    
     """
+
     # ---------- Análisis del impacto del tamaño de imagen ----------
     print("\n" + "="*50)
     print("ANÁLISIS DEL IMPACTO DEL TAMAÑO DE IMAGEN")
@@ -523,13 +593,8 @@ def main():
     
     # ---------- Gráficos del análisis de tamaños ----------
     graficar_analisis_tamanos(resultados_tamanos)
-    
-    #---------------Calculamos la convergencia con el mejor alpha-----------------
-    print("\n" + "="*50)
-    print("CALCULAMOS LA CONVERGENCIA CON EL MEJOR ALPHA")
-    print("="*50)
-    w, b, loss_hist_norm, acc_tr_hist_norm, acc_te_hist_norm = gradient_descent(X_tr_norm, y_tr, X_te_norm, y_te, 1e-06)
-    
+
+
     # ---------- Predicción y matriz de confusión ----------
     print("\n" + "="*50)
     print("PREDICCIÓN Y ANÁLISIS DE EFECTIVIDAD")
@@ -550,6 +615,6 @@ def main():
     
     # Graficar matriz de confusión
     graficar_matriz_confusion(cm, accuracy, "Matriz de Confusión - Datos Normalizados")
-    """
+    
 if __name__ == "__main__":
     main()
